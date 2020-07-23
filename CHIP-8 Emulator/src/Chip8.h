@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstdint>
+#include <chrono>
+#include <random>
 
 class Chip8
 {
@@ -18,6 +20,9 @@ public:
 	uint32_t video[64 * 32]{};	// Each pixel is a uint32 for SDL. :(
 	uint16_t opcode;
 
+	std::default_random_engine randGen;
+	std::uniform_int_distribution<uint8_t> randByte;
+
 /* Keypad Binding
 	Keypad       Keyboard
 	+-+-+-+-+    +-+-+-+-+
@@ -34,4 +39,34 @@ public:
 	void LoadROM(char const* filename);
 
 private:
+
+	// CLS: Clear the display. Entire video buffer set to 0s.
+	void OP_00E0();
+
+	// RET: Return from a subroutine.
+	void OP_00EE();
+
+	// JP addr: Jump to location nnn. Interpreter sets the pc to nnn.
+	void OP_1nnn();
+
+	// CALL addr: Call subroutine at nnn.
+	void OP_2nnn();
+
+	// SE Vx, byte: Skip next instruction if Vx = kk.
+	void OP_3xkk();
+
+	// SNE Vx, byte: Skip next instruction if Vx != kk.
+	void OP_4xkk();
+
+	// SE Vx, Vy: Skip next instruction if Vx = Vy.
+	void OP_5xy0();
+
+	// LD Vx, byte: Set Vx = kk.
+	void OP_6xkk();
+
+	// ADD Vx, byte: Set Vx = Vx + kk.
+	void OP_7xkk();
+
+	// LD Vx, Vy: Set Vx = Vy.
+	void OP_8xy0();
 };
