@@ -15,20 +15,8 @@ class Chip8
 {
 public:
 	Chip8();
-	uint8_t registers[REGISTER_COUNT]{};	// Location on CPU for storage.
-	uint8_t memory[MEMORY_SIZE]{};		// 0x000-0x1FF reserved, 0x050-0x0A0 for characters 0-F (put into memory), 0x200 onwards is for ROM memory.
-	uint16_t index{};			// Stores memory addresses for operations. 16bit because max mem address is too big for 8bit.
-	uint16_t pc{};				// Program counter, register that holds the address of the next instruction to execute. Opcode is 2bytes but we fetch byte from PC and PC+1.
-	uint16_t stack[STACK_LEVELS]{};		// Keeps track of the execution order. Holds the PC value when CALL. HOlds 16 PCs.
-	uint8_t sp{};				// Stack pointer, where did we place the most recent value? (i.e. the top).
-	uint8_t delayTimer{};		// Timer = 0 ? stays zero : decrement at 60Hz.
-	uint8_t soundTimer{};		// Same behaviour as DT, but tone buzzes if not zero.
 	uint8_t keypad[KEY_COUNT]{};		// Input keys 0-F. Look below.
 	uint32_t video[VIDEO_WIDTH * VIDEO_HEIGHT]{};	// Each pixel is a uint32 for SDL. :(
-	uint16_t opcode;
-
-	std::default_random_engine randGen;
-	std::uniform_int_distribution<uint8_t> randByte;
 
 /* Keypad Binding
 	Keypad       Keyboard
@@ -44,8 +32,16 @@ public:
 */
 
 	void LoadROM(char const* filename);
+	void Cycle();
 
 private:
+	void Table0();
+	void Table8();
+	void TableE();
+	void TableF();
+
+	// Do nothing
+	void OP_NULL();
 
 	// CLS: Clear the display. Entire video buffer set to 0s.
 	void OP_00E0();
@@ -150,4 +146,23 @@ private:
 	// LD Vx, [I]: Read registers V0 through Vx from memory starting at loction I.
 	void OP_Fx65();
 
+	uint8_t registers[REGISTER_COUNT]{};	// Location on CPU for storage.
+	uint8_t memory[MEMORY_SIZE]{};		// 0x000-0x1FF reserved, 0x050-0x0A0 for characters 0-F (put into memory), 0x200 onwards is for ROM memory.
+	uint16_t index{};			// Stores memory addresses for operations. 16bit because max mem address is too big for 8bit.
+	uint16_t pc{};				// Program counter, register that holds the address of the next instruction to execute. Opcode is 2bytes but we fetch byte from PC and PC+1.
+	uint16_t stack[STACK_LEVELS]{};		// Keeps track of the execution order. Holds the PC value when CALL. HOlds 16 PCs.
+	uint8_t sp{};				// Stack pointer, where did we place the most recent value? (i.e. the top).
+	uint8_t delayTimer{};		// Timer = 0 ? stays zero : decrement at 60Hz.
+	uint8_t soundTimer{};		// Same behaviour as DT, but tone buzzes if not zero.
+	uint16_t opcode;
+
+	std::default_random_engine randGen;
+	std::uniform_int_distribution<uint8_t> randByte;
+
+	typedef void (Chip8::* Chip8Func)();
+	Chip8Func table[0xF + 1]{ &Chip8::OP_NULL };
+	Chip8Func table0[0xE + 1]{ &Chip8::OP_NULL };
+	Chip8Func table8[0xE + 1]{ &Chip8::OP_NULL };
+	Chip8Func tableE[0xE + 1]{ &Chip8::OP_NULL };
+	Chip8Func tableF[0x65 + 1]{ &Chip8::OP_NULL };
 };
