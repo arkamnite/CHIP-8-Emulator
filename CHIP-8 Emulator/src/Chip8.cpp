@@ -41,7 +41,7 @@ Chip8::Chip8()
 	}
 
 	// Initialise the RNG
-	randByte = std::uniform_int_distribution<uint8_t>(0, 255U);
+	randByte = std::uniform_int_distribution<unsigned int>(0, 255U);
 
 	// Set up function pointer table
 	table[0x0] = &Chip8::Table0;
